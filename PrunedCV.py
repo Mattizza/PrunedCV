@@ -61,7 +61,7 @@ class PrunedCV:
         self.__param_grid__ = param_grid
         self.__scores__     = scores
 
-    def set_evaluation(self, score: metrics = metrics.accuracy_score, min_folds: int = 0, 
+    def set_evaluation(self, score: metrics = metrics.accuracy_score, 
                        thresh_skip: int = 0, thresh_percentage: float = 0.0) -> None:
         '''
         Set the evaluation scores used during the procedure. It is also possible to set thresholds regarding the pruning steps.
@@ -71,11 +71,7 @@ class PrunedCV:
         ---
         score : list, default = [accuracy_score]
             List of scores used to evaluate the goodness of a model. They have to be `sklearn.metrcis` methods.
-        
-        min_folds : int, default = 0
-            Minimum number of folds needed to compute the average between the performances and make a fair comparison with the
-            best performance.
-        
+         
         thresh_skip : int, default = 0
             How many times the actual model should be below the percentage of the maximal value in order to early stop the
             cross-validation and go to the next configuration.
@@ -88,7 +84,6 @@ class PrunedCV:
         self.__thresh_skip__       = thresh_skip
         self.__thresh_percentage__ = thresh_percentage
         self.__score__             = score.__name__
-        self.__min_folds__         = min_folds
     
     def __evaluate_model__(self, X_train: np.ndarray, y_train: np.ndarray, X_test: np.ndarray, y_test: np.ndarray,
                            model: type, scores: list) -> dict:
@@ -103,7 +98,7 @@ class PrunedCV:
         
         return dic_results
 
-    def do_cross_validation(self, verbose: int = 2) -> dict:
+    def do_cross_validation(self, verbose: int = 0) -> dict:
         '''
         This method just starts the cross-validation procedure.
 
@@ -111,11 +106,11 @@ class PrunedCV:
         ---
         verbose : int, default = 2
             Specifies how much to print. The higher, the more details.
-            * `0` = nothing will be printed;
-            * `1` = information about the current model;
-            * `2` = new print at every new configuration;
-            * `3` = print the configuration;
-            * `4` = print any detail about the folds.
+            * 0 = nothing will be printed;
+            * 1 = information about the current model;
+            * 2 = new print at every new configuration;
+            * 3 = print the configuration;
+            * 4 = print any detail about the folds.
         '''
 
         # Initialize best score and models performances.
@@ -198,6 +193,7 @@ class PrunedCV:
                 total_scores          = models_performance[model_name][model_config_name][self.__score__]
                 total_weights         = models_performance[model_name][model_config_name]['weight']
                 total_avg_performance = np.average(total_scores, weights = total_weights)
+                
 
                 # If the model has really good performances, it becomes the new best.
                 best = total_avg_performance if total_avg_performance >= best and self.__thresh_percentage__ != 0.0 else best
@@ -216,4 +212,3 @@ class PrunedCV:
         Just returns the performances.
         '''
         return self.models_perfomance
-
